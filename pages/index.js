@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
-import { toInmate, parse } from "../lib/helpers.js";
+import { toInmate, parse, RACE_LIST } from "../lib/helpers.js";
 
 /* ── 실루엣 아이콘 (bop.gov 스타일) ── */
 function SilhouetteIcon() {
@@ -167,11 +167,100 @@ function ResultCard({ inmate, label }) {
   );
 }
 
+/* ── 검색 결과 테이블 ── */
+function ResultsTable({ inmates }) {
+  const router = useRouter();
+  const [sortKey, setSortKey] = useState("inmateName");
+  const [sortDir, setSortDir] = useState("asc");
+
+  function handleSort(key) {
+    if (sortKey === key) setSortDir(d => d === "asc" ? "desc" : "asc");
+    else { setSortKey(key); setSortDir("asc"); }
+  }
+
+  const sorted = [...inmates].sort((a, b) => {
+    const av = String(a[sortKey] || "");
+    const bv = String(b[sortKey] || "");
+    const cmp = av.localeCompare(bv, undefined, { numeric: true });
+    return sortDir === "asc" ? cmp : -cmp;
+  });
+
+  const cols = [
+    { key: "inmateName",   label: "Name" },
+    { key: "inmateNumber", label: "Register #" },
+    { key: "age",          label: "Age" },
+    { key: "race",         label: "Race" },
+    { key: "sex",          label: "Sex" },
+    { key: "releaseDate",  label: "Release Date" },
+    { key: "location",     label: "Location" },
+  ];
+
+  const thStyle = (key) => ({
+    padding: "8px 12px",
+    textAlign: "left",
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+    userSelect: "none",
+    fontWeight: 600,
+    fontSize: 12,
+    letterSpacing: "0.04em",
+    color: "#fff",
+    borderRight: "1px solid #2a4a8b",
+  });
+
+  const arrow = (key) => sortKey === key ? (sortDir === "asc" ? " ▲" : " ▼") : " ⇅";
+
+  return (
+    <div style={{ overflowX: "auto" }}>
+      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, minWidth: 700 }}>
+        <thead>
+          <tr style={{ background: "#1a3a6b" }}>
+            {cols.map(col => (
+              <th key={col.key} onClick={() => handleSort(col.key)} style={thStyle(col.key)}>
+                {col.label}{arrow(col.key)}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {sorted.map((inmate, i) => (
+            <tr
+              key={inmate.id}
+              style={{ background: i % 2 === 0 ? "#fff" : "#f5f7fa", cursor: "pointer" }}
+              onClick={() => router.push(`/inmate/${inmate.id}`)}
+              onMouseEnter={e => e.currentTarget.style.background = "#dce8f7"}
+              onMouseLeave={e => e.currentTarget.style.background = i % 2 === 0 ? "#fff" : "#f5f7fa"}
+            >
+              <td style={{ padding: "7px 12px", color: "#1a74bb", fontWeight: 600, borderBottom: "1px solid #e8e8e8" }}>
+                {inmate.inmateName.toUpperCase()}
+              </td>
+              <td style={{ padding: "7px 12px", fontFamily: "Courier New, monospace", borderBottom: "1px solid #e8e8e8" }}>
+                {inmate.inmateNumber}
+              </td>
+              <td style={{ padding: "7px 12px", borderBottom: "1px solid #e8e8e8" }}>{inmate.age}</td>
+              <td style={{ padding: "7px 12px", borderBottom: "1px solid #e8e8e8" }}>{inmate.race}</td>
+              <td style={{ padding: "7px 12px", borderBottom: "1px solid #e8e8e8" }}>{inmate.sex}</td>
+              <td style={{ padding: "7px 12px", borderBottom: "1px solid #e8e8e8" }}>{inmate.releaseDate}</td>
+              <td style={{ padding: "7px 12px", borderBottom: "1px solid #e8e8e8", fontSize: 12, color: "#333" }}>
+                {inmate.location}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 /* ── 메인 페이지 ── */
 export default function IndexPage() {
   const [tab, setTab]           = useState("name");
   const [firstName, setFirstName] = useState("");
+  const [middle, setMiddle]       = useState("");
   const [lastName, setLastName]   = useState("");
+  const [raceFilter, setRaceFilter] = useState("");
+  const [ageFilter, setAgeFilter]   = useState("");
+  const [sexFilter, setSexFilter]   = useState("");
   const [numberQuery, setNumberQuery] = useState("");
   const [results, setResults]   = useState([]);
   const [loading, setLoading]   = useState(false);
@@ -204,10 +293,10 @@ export default function IndexPage() {
     let label = "";
 
     if (tab === "name") {
-      const parts = [firstName.trim(), lastName.trim()].filter(Boolean);
+      const parts = [firstName.trim(), middle.trim(), lastName.trim()].filter(Boolean);
       if (!parts.length) return;
       q = parts.join(" ");
-      label = q;
+      label = [firstName.trim(), lastName.trim()].filter(Boolean).join(" ") || q;
     } else {
       q = numberQuery.trim();
       if (!q) return;
@@ -223,7 +312,13 @@ export default function IndexPage() {
       const res  = await fetch(`/api/books?q=${encodeURIComponent(q)}&mode=${tab}`);
       const data = await res.json();
       const items = data.body?.items || [];
-      setResults(items.map(toInmate));
+      let inmates = items.map(toInmate);
+      if (tab === "name") {
+        if (raceFilter) inmates = inmates.filter(i => i.race === raceFilter);
+        if (sexFilter)  inmates = inmates.filter(i => i.sex === sexFilter);
+        if (ageFilter.trim()) inmates = inmates.filter(i => i.age === ageFilter.trim());
+      }
+      setResults(inmates);
     } catch (err) {
       setError("Search failed. Please try again.");
     } finally {
@@ -233,7 +328,11 @@ export default function IndexPage() {
 
   function handleClear() {
     setFirstName("");
+    setMiddle("");
     setLastName("");
+    setRaceFilter("");
+    setAgeFilter("");
+    setSexFilter("");
     setNumberQuery("");
     setResults([]);
     setSearched(false);
@@ -327,24 +426,64 @@ export default function IndexPage() {
           <form onSubmit={handleSearch} style={{ padding: "16px 16px 0" }}>
             {tab === "name" ? (
               /* Find By Name */
-              <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "flex-end" }}>
-                <div style={{ flex: "1 1 140px" }}>
-                  <label style={{ display: "block", fontSize: 12, color: "#555", marginBottom: 4 }}>First</label>
-                  <input
-                    type="text"
-                    value={firstName}
-                    onChange={e => setFirstName(e.target.value)}
-                    style={inputStyle}
-                  />
+              <div>
+                {/* 이름 행 */}
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "flex-end", marginBottom: 10 }}>
+                  <div style={{ flex: "1 1 120px" }}>
+                    <label style={{ display: "block", fontSize: 12, color: "#555", marginBottom: 4 }}>First</label>
+                    <input
+                      type="text"
+                      value={firstName}
+                      onChange={e => setFirstName(e.target.value)}
+                      style={inputStyle}
+                    />
+                  </div>
+                  <div style={{ flex: "1 1 100px" }}>
+                    <label style={{ display: "block", fontSize: 12, color: "#555", marginBottom: 4 }}>Middle</label>
+                    <input
+                      type="text"
+                      value={middle}
+                      onChange={e => setMiddle(e.target.value)}
+                      style={inputStyle}
+                    />
+                  </div>
+                  <div style={{ flex: "1 1 120px" }}>
+                    <label style={{ display: "block", fontSize: 12, color: "#555", marginBottom: 4 }}>Last</label>
+                    <input
+                      type="text"
+                      value={lastName}
+                      onChange={e => setLastName(e.target.value)}
+                      style={inputStyle}
+                    />
+                  </div>
                 </div>
-                <div style={{ flex: "1 1 140px" }}>
-                  <label style={{ display: "block", fontSize: 12, color: "#555", marginBottom: 4 }}>Last</label>
-                  <input
-                    type="text"
-                    value={lastName}
-                    onChange={e => setLastName(e.target.value)}
-                    style={inputStyle}
-                  />
+                {/* 필터 행 */}
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "flex-end" }}>
+                  <div style={{ flex: "1 1 120px" }}>
+                    <label style={{ display: "block", fontSize: 12, color: "#555", marginBottom: 4 }}>Race</label>
+                    <select value={raceFilter} onChange={e => setRaceFilter(e.target.value)} style={inputStyle}>
+                      <option value="">All Races</option>
+                      {RACE_LIST.map(r => <option key={r}>{r}</option>)}
+                    </select>
+                  </div>
+                  <div style={{ flex: "0 0 80px" }}>
+                    <label style={{ display: "block", fontSize: 12, color: "#555", marginBottom: 4 }}>Age</label>
+                    <input
+                      type="text"
+                      value={ageFilter}
+                      onChange={e => setAgeFilter(e.target.value)}
+                      placeholder="e.g. 45"
+                      style={inputStyle}
+                    />
+                  </div>
+                  <div style={{ flex: "1 1 100px" }}>
+                    <label style={{ display: "block", fontSize: 12, color: "#555", marginBottom: 4 }}>Sex</label>
+                    <select value={sexFilter} onChange={e => setSexFilter(e.target.value)} style={inputStyle}>
+                      <option value="">All</option>
+                      <option>Male</option>
+                      <option>Female</option>
+                    </select>
+                  </div>
                 </div>
               </div>
             ) : (
@@ -382,7 +521,7 @@ export default function IndexPage() {
                 )}
               </div>
               <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                {(firstName || lastName || numberQuery) && (
+                {(firstName || middle || lastName || raceFilter || ageFilter || sexFilter || numberQuery) && (
                   <button
                     type="button"
                     onClick={handleClear}
@@ -460,10 +599,8 @@ export default function IndexPage() {
               </div>
             )}
             {!loading && !error && results.length > 0 && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                {results.map(inmate => (
-                  <ResultCard key={inmate.id} inmate={inmate} />
-                ))}
+              <div style={{ border: "1px solid #ccc", borderRadius: 4, overflow: "hidden" }}>
+                <ResultsTable inmates={results} />
               </div>
             )}
           </section>
