@@ -35,7 +35,6 @@ export default function App({ Component, pageProps }) {
         padding: "12px 24px",
         display: "flex",
         alignItems: "center",
-        justifyContent: "space-between",
       }}>
         <Link href="/" style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none" }}>
           {/* 방패 아이콘 */}
@@ -44,41 +43,11 @@ export default function App({ Component, pageProps }) {
             <path d="M18 6L30 11V20C30 27 24 33 18 35C12 33 6 27 6 20V11L18 6Z" fill="#c8a84b"/>
             <text x="18" y="24" textAnchor="middle" fill="#1a3a6b" fontSize="10" fontWeight="bold" fontFamily="serif">NLK</text>
           </svg>
-          <div>
-            <div style={{ fontSize: 20, fontWeight: "bold", color: "#111", letterSpacing: "0.02em" }}>
-              National Library of Korea
-            </div>
-            <div style={{ fontSize: 12, color: "#555", marginTop: 1 }}>
-              Inmate Locator
-            </div>
+          <div style={{ fontSize: 20, fontWeight: "bold", color: "#111", letterSpacing: "0.02em" }}>
+            Inmate Locator
           </div>
         </Link>
       </header>
-
-      {/* 네비게이션 바 */}
-      <nav style={{
-        background: "#1a3a6b",
-        padding: "0 24px",
-        display: "flex",
-        gap: 0,
-      }}>
-        {["Home", "About Us", "Inmates", "Locations", "Resources"].map((item, i) => (
-          <a
-            key={item}
-            href={i === 0 ? "/" : "#"}
-            style={{
-              display: "inline-block",
-              padding: "10px 16px",
-              color: "#fff",
-              fontSize: 13,
-              textDecoration: "none",
-              borderRight: "1px solid rgba(255,255,255,0.15)",
-            }}
-          >
-            {item}
-          </a>
-        ))}
-      </nav>
 
       <Component {...pageProps} />
     </>

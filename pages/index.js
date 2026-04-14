@@ -45,9 +45,9 @@ function InmatePhoto({ inmate }) {
 /* ── 상태 배지 ── */
 function StatusBadge({ status }) {
   const map = {
-    AVAILABLE:   { label: "Not in Custody",       color: "#1B5E20", bg: "#F1F8F1" },
-    CHECKED_OUT: { label: "Currently in Custody",  color: "#BF360C", bg: "#FFF3EE" },
-    RESTRICTED:  { label: "Restricted",            color: "#B71C1C", bg: "#FFF0F0" },
+    AVAILABLE:   { label: "VISITATION OPEN",       color: "#1B5E20", bg: "#F1F8F1" },
+    CHECKED_OUT: { label: "IN VISITATION",          color: "#BF360C", bg: "#FFF3EE" },
+    RESTRICTED:  { label: "VISITATION RESTRICTED",  color: "#B71C1C", bg: "#FFF0F0" },
   };
   const s = map[status] || map.AVAILABLE;
   return (
@@ -67,10 +67,9 @@ function StatusBadge({ status }) {
   );
 }
 
-/* ── Related Links 패널 ── */
+/* ── Request for Visitation 버튼 ── */
 function RelatedLinks({ inmate }) {
   const [submitted, setSubmitted] = useState(false);
-  const router = useRouter();
 
   return (
     <div style={{
@@ -78,44 +77,30 @@ function RelatedLinks({ inmate }) {
       paddingLeft: 16,
       minWidth: 160,
       flexShrink: 0,
+      display: "flex",
+      alignItems: "flex-start",
     }}>
-      <div style={{ fontWeight: "bold", fontSize: 13, marginBottom: 8, color: "#111" }}>
-        Related Links
-      </div>
-      <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 5 }}>
-        <li>
-          <a
-            href={`/inmate/${inmate.id}`}
-            onClick={e => { e.preventDefault(); router.push(`/inmate/${inmate.id}`); }}
-            style={{ fontSize: 13, color: "#1a74bb" }}
-          >
-            View full record
-          </a>
-        </li>
-        <li>
-          {!submitted ? (
-            <button
-              onClick={() => setSubmitted(true)}
-              style={{
-                background: "none",
-                border: "none",
-                padding: 0,
-                fontSize: 13,
-                color: "#1a74bb",
-                cursor: "pointer",
-                textDecoration: "underline",
-                textAlign: "left",
-              }}
-            >
-              Request for Visitation
-            </button>
-          ) : (
-            <span style={{ fontSize: 13, color: "#1B5E20", fontStyle: "italic" }}>
-              Visitation request submitted.
-            </span>
-          )}
-        </li>
-      </ul>
+      {!submitted ? (
+        <button
+          onClick={e => { e.stopPropagation(); setSubmitted(true); }}
+          style={{
+            background: "none",
+            border: "none",
+            padding: 0,
+            fontSize: 13,
+            color: "#1a74bb",
+            cursor: "pointer",
+            textDecoration: "underline",
+            textAlign: "left",
+          }}
+        >
+          Request for Visitation
+        </button>
+      ) : (
+        <span style={{ fontSize: 13, color: "#1B5E20", fontStyle: "italic" }}>
+          Visitation request submitted.
+        </span>
+      )}
     </div>
   );
 }

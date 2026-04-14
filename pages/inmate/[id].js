@@ -51,9 +51,9 @@ function SilhouetteIcon({ size = 120 }) {
 /* ── 상태 배지 ── */
 function StatusBadge({ status }) {
   const map = {
-    AVAILABLE:   { label: "Not in Custody",       color: "#1B5E20", bg: "#F1F8F1" },
-    CHECKED_OUT: { label: "Currently in Custody",  color: "#BF360C", bg: "#FFF3EE" },
-    RESTRICTED:  { label: "Restricted",            color: "#B71C1C", bg: "#FFF0F0" },
+    AVAILABLE:   { label: "VISITATION OPEN",       color: "#1B5E20", bg: "#F1F8F1" },
+    CHECKED_OUT: { label: "IN VISITATION",          color: "#BF360C", bg: "#FFF3EE" },
+    RESTRICTED:  { label: "VISITATION RESTRICTED",  color: "#B71C1C", bg: "#FFF0F0" },
   };
   const s = map[status] || map.AVAILABLE;
   return (

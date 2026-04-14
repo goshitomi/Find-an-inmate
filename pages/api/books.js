@@ -97,19 +97,37 @@ export default async function handler(req, res) {
       });
     }
 
-    /* ── Browse 모드: NLK 랜덤 페이지 → Recommended Inmates (5개) ── */
-    const randomOffset = Math.floor(Math.random() * 2000);
-    const apiPage      = KOR_MONO_START + randomOffset + 1;
-    const { items }    = await fetchNLKPage(apiPage);
+    /* ── Browse 모드: NLK 우선, 실패 시 Google Books fallback ── */
 
-    const filtered = items
-      .filter(isBookItem)
-      .filter(isKoreanItem)
-      .map(parse)
-      .slice(0, 5);
+    // NLK API 키가 있으면 NLK 랜덤 페이지 시도
+    if (API_KEY) {
+      const randomOffset = Math.floor(Math.random() * 2000);
+      const apiPage      = KOR_MONO_START + randomOffset + 1;
+      const { items }    = await fetchNLKPage(apiPage);
+
+      const filtered = items
+        .filter(isBookItem)
+        .filter(isKoreanItem)
+        .map(parse)
+        .slice(0, 5);
+
+      if (filtered.length > 0) {
+        return res.status(200).json({
+          body: { items: filtered, totalCount: filtered.length },
+        });
+      }
+    }
+
+    // NLK 키 없거나 결과 없을 때 → Google Books fallback
+    const BROWSE_KEYWORDS = ["소설", "한국 역사", "철학", "시집", "에세이", "한국문학", "과학"];
+    const keyword = BROWSE_KEYWORDS[Math.floor(Math.random() * BROWSE_KEYWORDS.length)];
+    const result  = await searchGoogleBooks(keyword, 10);
+
+    // 10개 중 랜덤 5개 선택
+    const shuffled = result.items.sort(() => Math.random() - 0.5).slice(0, 5);
 
     return res.status(200).json({
-      body: { items: filtered, totalCount: filtered.length },
+      body: { items: shuffled, totalCount: shuffled.length },
     });
 
   } catch (err) {
