@@ -135,7 +135,7 @@ function ResultCard({ inmate, label }) {
           {inmate.inmateName.toUpperCase()}
         </div>
         <div style={{ fontSize: 13, color: "#333", marginBottom: 8 }}>
-          Register Number: <strong>{inmate.inmateNumber}</strong>
+          Inmate Number: <strong>{inmate.inmateNumber}</strong>
         </div>
         <table style={{ borderSpacing: 0, fontSize: 13 }}>
           <tbody>
@@ -187,7 +187,7 @@ function ResultsTable({ inmates }) {
 
   const cols = [
     { key: "inmateName",   label: "Name" },
-    { key: "inmateNumber", label: "Register #" },
+    { key: "inmateNumber", label: "Inmate #" },
     { key: "age",          label: "Age" },
     { key: "race",         label: "Race" },
     { key: "sex",          label: "Sex" },
@@ -490,7 +490,7 @@ export default function IndexPage() {
               /* Find By Number */
               <div style={{ maxWidth: 320 }}>
                 <label style={{ display: "block", fontSize: 12, color: "#555", marginBottom: 4 }}>
-                  Register Number (ISBN)
+                  Inmate Number (ISBN)
                 </label>
                 <input
                   type="text"

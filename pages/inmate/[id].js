@@ -111,7 +111,7 @@ export default function InmatePage({ inmate }) {
     <>
       <Head>
         <title>{inmate.inmateName.toUpperCase()} — Inmate Record</title>
-        <meta name="description" content={`Inmate record for ${inmate.inmateName}. Register Number: ${inmate.inmateNumber}`} />
+        <meta name="description" content={`Inmate record for ${inmate.inmateName}. Inmate Number: ${inmate.inmateNumber}`} />
       </Head>
 
       <main style={{ maxWidth: 960, margin: "0 auto", padding: "24px 16px 48px" }}>
@@ -182,7 +182,7 @@ export default function InmatePage({ inmate }) {
                 {inmate.inmateNumber}
               </div>
               <div style={{ fontSize: 11, color: "#777", textAlign: "center" }}>
-                Register Number
+                Inmate Number
               </div>
             </div>
 
@@ -199,14 +199,14 @@ export default function InmatePage({ inmate }) {
 
               <table style={{ borderSpacing: 0, width: "100%", marginBottom: 16 }}>
                 <tbody>
-                  <InfoRow label="Register Number"  value={inmate.inmateNumber} />
-                  <InfoRow label="Resident ID"      value={inmate.residentId} />
-                  <InfoRow label="Date of Birth"    value={inmate.dateOfBirth} />
-                  <InfoRow label="Place of Birth"   value={inmate.placeOfBirth} />
-                  <InfoRow label="Height"           value={inmate.height} />
-                  <InfoRow label="Sentence"         value={inmate.sentence} />
-                  <InfoRow label="Accomplice"       value={inmate.accomplice} />
-                  <InfoRow label="Facility"         value={inmate.holding || "National Library of Korea"} />
+                  <InfoRow label="Inmate Number"              value={inmate.inmateNumber} />
+                  <InfoRow label="Resident Registration No." value={inmate.residentId} />
+                  <InfoRow label="Date of Birth"             value={inmate.dateOfBirth} />
+                  <InfoRow label="Place of Birth"            value={inmate.placeOfBirth} />
+                  <InfoRow label="Height"                    value={inmate.height} />
+                  <InfoRow label="Sentence"                  value={inmate.sentence} />
+                  <InfoRow label="Accomplice"                value={inmate.accomplice} />
+                  <InfoRow label="Facility"                  value={inmate.holding || "National Library of Korea"} />
                 </tbody>
               </table>
 
